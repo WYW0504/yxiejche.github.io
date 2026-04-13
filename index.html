@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动二维码生成器</title>
+    <!-- 引入 qrcode.js 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 320px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        #qrcode img {
+            display: block;
+            /* 防止图片底部留白 */
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007BFF;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>二维码生成器</h2>
+
+        <!-- 上方：二维码显示区域 -->
+        <div id="qrcode"></div>
+
+        <!-- 下方：输入框 -->
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="在此输入网址..." autocomplete="off">
+            <p class="hint">输入后自动刷新二维码</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 配置区域 ---
+        // 在这里设置你的固定参数（例如链接的后缀或特定参数）
+        const FIXED_PARAM =
+            "?adid=111&os=0&csite=1&ip=1.8.6.6&cid=17&clickid=55&callback=23&creativeid=1212&creativetype=3&projectid=1212&promotionid=1212";
+
+        const qrContainer = document.getElementById("qrcode");
+        const urlInput = document.getElementById("urlInput");
+        let qrcodeObj = null; // 用于存储二维码实例
+
+        // 生成二维码的函数
+        function generateQR() {
+            let inputVal = urlInput.value.trim();
+
+            // 如果输入框为空，可以选择清空或生成默认内容
+            if (!inputVal) {
+                inputVal = "https://www.example.com"; // 默认值
+            }
+
+            // 组合最终链接：输入内容 + 固定参数
+            const finalUrl = inputVal + FIXED_PARAM;
+
+            // 1. 清空旧的二维码
+            qrContainer.innerHTML = "";
+
+            // 2. 生成新的二维码
+            // 使用 qrcode.js 库
+            qrcodeObj = new QRCode(qrContainer, {
+                text: finalUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        // 监听输入框变化，实现“自动刷新”
+        urlInput.addEventListener("input", generateQR);
+
+        // 页面加载时生成一个初始二维码
+        window.onload = generateQR;
+    </script>
+
+</body>
+
+</html>
