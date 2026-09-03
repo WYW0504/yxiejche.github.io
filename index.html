@@ -2,210 +2,1301 @@
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多后缀二维码生成器</title>
-    <!-- 引入 qrcode.js 库 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>工具箱</title>
+
+    <!-- LayUI CSS (v2.9.x) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.9.8/dist/css/layui.css" />
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+    </script>
+
     <style>
+        /* ===== 全局重置 & 布局微调 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ----- LayUI 布局适配 ----- */
+        .layui-layout-admin .layui-side {
+            width: 220px;
+            background: #1e2a3a;
+            transition: none;
+        }
+
+        .layui-layout-admin .layui-body {
+            left: 220px;
+            padding: 24px 32px 32px 32px;
+            background: #f5f7fa;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        /* 侧边栏 Logo */
+        .sidebar-logo {
+            height: 60px;
+            line-height: 60px;
+            padding: 0 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            background: #15212e;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-logo span {
+            font-size: 22px;
+        }
+
+        /* 侧边导航微调 */
+        .layui-nav-tree {
+            background: transparent;
+            margin-top: 8px;
+        }
+
+        .layui-nav-tree .layui-nav-item a {
+            font-size: 14px;
+            padding: 0 20px;
+            color: rgba(255, 255, 255, 0.75);
+            transition: all 0.25s;
+        }
+
+        .layui-nav-tree .layui-nav-item a:hover {
+            color: #fff;
+        }
+
+        .layui-nav-tree .layui-nav-item.layui-this a {
+            color: #fff;
+            background: #3b82f6;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .layui-nav-tree .layui-nav-item.layui-this a:hover {
+            background: #3b82f6;
+        }
+
+        .layui-nav-tree .layui-nav-item {
+            margin: 2px 12px 2px 0;
+        }
+
+        /* ----- 卡片 & 内容 ----- */
+        .page-panel {
+            display: none;
+            animation: fadeUp 0.35s ease;
+        }
+
+        .page-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .layui-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.25s;
+        }
+
+        .layui-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
+        }
+
+        .layui-card-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 1px solid #f0f2f5;
+            padding: 18px 24px;
+        }
+
+        .layui-card-header i {
+            margin-right: 8px;
+            color: #3b82f6;
+        }
+
+        .layui-card-body {
+            padding: 24px 24px 28px 24px;
+        }
+
+        /* ----- 二维码容器 ----- */
+        #qrcode {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
+            background: #fafbfc;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            min-height: 220px;
+            margin-bottom: 20px;
         }
 
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 380px; /* 稍微加宽以适应选项卡 */
+        #qrcode img,
+        #qrcode canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
         }
 
-        h2 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+        /* ----- 自定义 Tab (使用 LayUI 风格 + 原生控制) ----- */
+        .custom-tab-wrap {
+            margin-bottom: 18px;
+        }
 
-        #qrcode {
-            display: flex; justify-content: center; margin-bottom: 20px;
-            padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 8px;
+        .custom-tab-nav {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            scrollbar-width: none;
         }
-        #qrcode img { display: block; }
 
-        /* --- 选项卡样式 --- */
-        .tabs-container { margin-bottom: 15px; }
-        .tabs-nav {
-            display: flex; gap: 5px; overflow-x: auto; padding-bottom: 5px;
-            margin-bottom: 10px; scrollbar-width: none; /* 隐藏滚动条 */
+        .custom-tab-nav::-webkit-scrollbar {
+            display: none;
         }
-        .tabs-nav::-webkit-scrollbar { display: none; }
-        
-        .tab-btn {
-            padding: 6px 12px; border: 1px solid #ddd; border-radius: 20px;
-            background: #f9f9f9; cursor: pointer; font-size: 12px; white-space: nowrap;
-            transition: all 0.2s; display: flex; align-items: center; gap: 5px;
-        }
-        .tab-btn.active { background: #007BFF; color: white; border-color: #007BFF; }
-        .tab-btn:hover:not(.active) { background: #eee; }
-        
-        .tab-close {
-            font-size: 14px; line-height: 1; cursor: pointer; opacity: 0.7;
-        }
-        .tab-close:hover { opacity: 1; color: #ff4d4f; }
 
-        .add-tab-btn {
-            padding: 6px 10px; border: 1px dashed #ccc; border-radius: 20px;
-            background: transparent; cursor: pointer; font-size: 12px; color: #888;
+        .custom-tab-btn {
+            flex-shrink: 0;
+            padding: 6px 16px 6px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #f9fafb;
+            cursor: pointer;
+            font-size: 13px;
+            color: #4b5563;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            user-select: none;
         }
-        .add-tab-btn:hover { border-color: #007BFF; color: #007BFF; }
+
+        .custom-tab-btn:hover {
+            border-color: #b0c4de;
+            background: #f1f5f9;
+        }
+
+        .custom-tab-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+
+        .custom-tab-btn .tab-close {
+            font-size: 16px;
+            line-height: 1;
+            opacity: 0.5;
+            cursor: pointer;
+            margin-left: 2px;
+            transition: opacity 0.2s;
+        }
+
+        .custom-tab-btn .tab-close:hover {
+            opacity: 1;
+            color: #ef4444;
+        }
+
+        .custom-tab-btn.active .tab-close {
+            color: #fff;
+            opacity: 0.75;
+        }
+
+        .custom-tab-btn.active .tab-close:hover {
+            opacity: 1;
+            color: #fee2e2;
+        }
+
+        .custom-tab-add {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            color: #94a3b8;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+
+        .custom-tab-add:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
 
         /* 后缀输入框 */
-        .suffix-input {
-            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;
-            font-size: 13px; outline: none; box-sizing: border-box; margin-bottom: 10px;
+        .suffix-input-wrap {
+            margin-top: 6px;
         }
-        .suffix-input:focus { border-color: #007BFF; }
 
-        /* 主链接输入框 */
-        .input-group { display: flex; flex-direction: column; gap: 10px; }
-        input[type="text"].main-input {
-            padding: 12px; border: 2px solid #ddd; border-radius: 8px;
-            font-size: 16px; outline: none; transition: border-color 0.3s;
+        .suffix-input-wrap .layui-input {
+            border-radius: 8px;
+            font-size: 13px;
+            padding: 10px 14px;
+            background: #fafbfc;
+            border-color: #e2e8f0;
+            transition: border 0.25s, box-shadow 0.25s;
         }
-        input[type="text"].main-input:focus { border-color: #007BFF; }
 
-        .hint { font-size: 12px; color: #888; margin-top: 5px; }
+        .suffix-input-wrap .layui-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: #fff;
+        }
+
+        /* 基础网址输入框 */
+        .url-input-wrap .layui-input {
+            border-radius: 8px;
+            font-size: 14px;
+            padding: 10px 14px;
+            background: #fafbfc;
+            border-color: #e2e8f0;
+            transition: border 0.25s, box-shadow 0.25s;
+        }
+
+        .url-input-wrap .layui-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: #fff;
+        }
+
+        .url-input-wrap .layui-form-label {
+            width: 80px;
+            padding: 10px 0;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        /* ----- 随机字符串结果框 ----- */
+        .random-result-box {
+            margin-top: 18px;
+            padding: 18px 20px;
+            background: #fafbfc;
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            min-height: 80px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 15px;
+            line-height: 2;
+            color: #1e293b;
+            word-break: break-all;
+            transition: border 0.25s;
+        }
+
+        .random-result-box:not(:empty) {
+            border-color: #dbeafe;
+        }
+
+        .random-result-box .empty-hint {
+            color: #a0aec0;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+        }
+
+        /* 生成按钮组 */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .action-bar .layui-btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0 28px;
+            height: 40px;
+            line-height: 40px;
+        }
+
+        /* ----- 链接生成页面样式 ----- */
+        .linkgen-form .layui-form-item {
+            margin-bottom: 12px;
+        }
+
+        .linkgen-form .layui-input-block {
+            margin-left: 110px;
+        }
+
+        .linkgen-form .layui-form-label {
+            width: 100px;
+            text-align: right;
+            padding: 9px 0;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .linkgen-result {
+            margin-top: 20px;
+            border-top: 1px solid #edf2f7;
+            padding-top: 18px;
+        }
+
+        .linkgen-result .result-item {
+            display: flex;
+            align-items: baseline;
+            padding: 8px 12px;
+            background: #fafbfc;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            border-left: 3px solid #3b82f6;
+            transition: background 0.2s;
+        }
+
+        .linkgen-result .result-item:hover {
+            background: #f1f5f9;
+        }
+
+        .linkgen-result .result-index {
+            font-weight: 600;
+            color: #1e293b;
+            min-width: 50px;
+            font-size: 14px;
+        }
+
+        .linkgen-result .result-name {
+            font-weight: 500;
+            color: #1e293b;
+            min-width: 180px;
+            font-size: 14px;
+        }
+
+        .linkgen-result .result-url {
+            color: #3b82f6;
+            word-break: break-all;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .linkgen-result .result-url a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .linkgen-result .result-url a:hover {
+            text-decoration: underline;
+        }
+
+        .linkgen-result .result-copy {
+            margin-left: 12px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.2s;
+            font-size: 14px;
+        }
+
+        .linkgen-result .result-copy:hover {
+            color: #3b82f6;
+        }
+
+        .linkgen-form .hint-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+            padding-left: 110px;
+        }
+
+        /* ----- 响应式 ----- */
+        @media (max-width: 768px) {
+            .layui-layout-admin .layui-side {
+                width: 0;
+                overflow: hidden;
+            }
+
+            .layui-layout-admin .layui-body {
+                left: 0;
+                padding: 16px 16px 24px 16px;
+            }
+
+            .sidebar-logo {
+                display: none;
+            }
+
+            .layui-card-body {
+                padding: 16px;
+            }
+
+            .custom-tab-btn {
+                font-size: 12px;
+                padding: 4px 12px 4px 14px;
+            }
+
+            .action-bar .layui-btn {
+                padding: 0 18px;
+                height: 36px;
+                line-height: 36px;
+                font-size: 13px;
+            }
+
+            .linkgen-form .layui-input-block {
+                margin-left: 0;
+            }
+
+            .linkgen-form .layui-form-label {
+                width: auto;
+                text-align: left;
+                padding: 9px 0 4px 0;
+                display: block;
+            }
+
+            .linkgen-result .result-item {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .linkgen-result .result-name {
+                min-width: 120px;
+            }
+
+            .linkgen-form .hint-text {
+                padding-left: 0;
+            }
+        }
+
+        /* ----- 工具类 ----- */
+        .mt-8 {
+            margin-top: 8px;
+        }
+
+        .mt-12 {
+            margin-top: 12px;
+        }
+
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+
+        .gap-8 {
+            gap: 8px;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-center {
+            align-items: center;
+        }
+
+        .text-muted {
+            color: #8b9cb0;
+            font-size: 13px;
+        }
+
+        /* 美化滚动条 */
+        .layui-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .layui-body::-webkit-scrollbar-track {
+            background: #f0f2f5;
+        }
+
+        .layui-body::-webkit-scrollbar-thumb {
+            background: #d1d9e6;
+            border-radius: 4px;
+        }
+
+        .layui-body::-webkit-scrollbar-thumb:hover {
+            background: #b0c0d0;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>二维码生成器</h2>
-        <div id="qrcode"></div>
 
-        <!-- 选项卡区域 -->
-        <div class="tabs-container">
-            <div id="tabsNav" class="tabs-nav"></div>
-            <input type="text" id="suffixInput" class="suffix-input" placeholder="在此输入当前选项卡的后缀参数...">
+    <div class="layui-layout layui-layout-admin">
+
+        <!-- ===== 左侧导航 ===== -->
+        <div class="layui-side">
+            <div class="layui-side-scroll">
+                <div class="sidebar-logo">
+                    <span>🛠️</span> 工具箱
+                </div>
+                <ul class="layui-nav layui-nav-tree" lay-filter="nav">
+                    <li class="layui-nav-item layui-this" data-page="page-qrcode">
+                        <a href="javascript:;"><i class="layui-icon layui-icon-code-circle"></i> 二维码生成</a>
+                    </li>
+                    <li class="layui-nav-item" data-page="page-random">
+                        <a href="javascript:;"><i class="layui-icon layui-icon-engine"></i> 随机字符串</a>
+                    </li>
+                    <li class="layui-nav-item" data-page="page-linkgen">
+                        <a href="javascript:;"><i class="layui-icon layui-icon-link"></i> 链接生成</a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <!-- 主链接输入 -->
-        <div class="input-group">
-            <input type="text" id="urlInput" class="main-input" placeholder="在此输入基础网址..." autocomplete="off">
-            <p class="hint">输入网址或切换选项卡后自动刷新二维码</p>
-        </div>
-    </div>
+        <!-- ===== 右侧内容 ===== -->
+        <div class="layui-body">
 
+            <!-- ========== 页面：二维码生成 ========== -->
+            <div id="page-qrcode" class="page-panel active">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-qrcode"></i> 二维码生成器
+                    </div>
+                    <div class="layui-card-body">
+
+                        <!-- 二维码展示 -->
+                        <div id="qrcode"></div>
+
+                        <!-- 自定义 Tab (参数切换) -->
+                        <div class="custom-tab-wrap">
+                            <div id="tabsNav" class="custom-tab-nav"></div>
+                            <div class="suffix-input-wrap">
+                                <input type="text" id="suffixInput" class="layui-input"
+                                    placeholder="当前选项卡的后缀参数，例如：?adid=111&os=0..." />
+                            </div>
+                        </div>
+
+                        <!-- 基础网址 -->
+                        <div class="url-input-wrap layui-form">
+                            <div class="layui-form-item" style="margin-bottom:0;">
+                                <label class="layui-form-label" style="width:80px;text-align:left;padding-left:0;">
+                                    基础网址
+                                </label>
+                                <div class="layui-input-block" style="margin-left:90px;">
+                                    <input type="text" id="urlInput" class="layui-input" autocomplete="off" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-muted mt-12" style="font-size:13px;color:#94a3b8;">
+                            <i class="layui-icon layui-icon-tips" style="font-size:14px;"></i>
+                            二维码将自动根据「基础网址 + 当前后缀」生成
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 页面：随机字符串生成 ========== -->
+            <div id="page-random" class="page-panel">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-engine"></i> 随机字符串生成器
+                    </div>
+                    <div class="layui-card-body">
+
+                        <p style="color:#64748b;font-size:14px;margin-bottom:16px;">
+                            每次生成 10 组，每组长度为 8~10 位（字符集包含数字和小写字母）。
+                        </p>
+
+                        <div class="action-bar">
+                            <button id="generateBtn" class="layui-btn layui-btn-primary layui-btn-lg">
+                                <i class="layui-icon layui-icon-username"></i> 生成随机字符串
+                            </button>
+                            <button id="copyBtn" class="layui-btn layui-btn-sm layui-btn-warm" style="display:none;">
+                                <i class="layui-icon layui-icon-ok-circle"></i> 复制全部
+                            </button>
+                        </div>
+
+                        <div id="randomResult" class="random-result-box">
+                            <span class="empty-hint">点击「生成」按钮获取随机字符串</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== 页面：链接生成（优化起始编号自动提取） ========== -->
+            <div id="page-linkgen" class="page-panel">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-link"></i> 链接生成器
+                    </div>
+                    <div class="layui-card-body">
+
+                        <form class="layui-form linkgen-form">
+                            <!-- 域名 -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">域名</label>
+                                <div class="layui-input-block">
+                                    <input type="text" id="domainInput" class="layui-input"
+                                        placeholder="https://www.example.com/" value="https://www.example.com/" />
+                                </div>
+                            </div>
+
+                            <!-- 链接名示例（自动提取起始编号） -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">链接名示例</label>
+                                <div class="layui-input-block">
+                                    <input type="text" id="exampleInput" class="layui-input"
+                                        placeholder="例如：HK-烧水壶KDFS5057" value="HK-烧水壶KDFS5057" />
+                                    <div class="hint-text">
+                                        <i class="layui-icon layui-icon-tips" style="font-size:14px;"></i>
+                                        系统将自动提取末尾4位数字作为起始编号（如 5057），并生成后续链接
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 生成条数 -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">生成条数</label>
+                                <div class="layui-input-block">
+                                    <input type="number" id="countInput" class="layui-input" placeholder="例如：5"
+                                        value="5" min="1" max="100" />
+                                </div>
+                            </div>
+
+                            <!-- 随机字符串长度 -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">随机串长度</label>
+                                <div class="layui-input-block">
+                                    <input type="number" id="randLenInput" class="layui-input" placeholder="8~10"
+                                        value="8" min="4" max="20" />
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item" style="margin-top:12px;">
+                                <div class="layui-input-block" style="margin-left:110px;">
+                                    <button type="button" id="linkGenBtn" class="layui-btn layui-btn-normal">
+                                        <i class="layui-icon layui-icon-ok"></i> 生成链接
+                                    </button>
+                                    <button type="button" id="linkCopyAllBtn" class="layui-btn layui-btn-warm"
+                                        style="display:none;">
+                                        <i class="layui-icon layui-icon-ok-circle"></i> 复制全部
+                                    </button>
+                                    <button type="button" id="linkClearBtn" class="layui-btn layui-btn-primary">
+                                        <i class="layui-icon layui-icon-close"></i> 清空结果
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- 结果展示区 -->
+                        <div id="linkResult" class="linkgen-result">
+                            <div class="text-muted" style="text-align:center;padding:20px 0;">
+                                <i class="layui-icon layui-icon-tips" style="font-size:20px;"></i>
+                                填写参数后点击「生成链接」查看结果
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.layui-body -->
+
+    </div><!-- /.layui-layout -->
+
+
+    <!-- ============================================================ -->
+    <!-- JavaScript -->
     <script>
-        // --- 核心状态管理 ---
-        let tabs = [
-            { id: 1, name: "默认参数", suffix: "?adid=111&os=0&csite=1&ip=1.8.6.6&cid=17&clickid=55&callback=23&creativeid=1212&creativetype=3&projectid=1212&promotionid=1212" },
-            { id: 2, name: "测试环境", suffix: "?resp-content-type=text%2Fhtml&adid=111&os=0&csite=1&i=1.8.6.6&cid=17&clickid=55&callback=23&creativeid=1212&creativetype=3&projectid=1212&promotionid=1212" }
-        ];
-        let activeTabId = 1;
-        let nextId = 3; // 用于生成新的唯一ID
+        // =============================================================
+        //  1. 侧边栏导航切换
+        // =============================================================
+        const navItems = document.querySelectorAll('.layui-nav-item');
+        const pages = document.querySelectorAll('.page-panel');
 
-        // --- DOM 元素 ---
-        const qrContainer = document.getElementById("qrcode");
-        const urlInput = document.getElementById("urlInput");
-        const suffixInput = document.getElementById("suffixInput");
-        const tabsNav = document.getElementById("tabsNav");
+        navItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.tagName === 'A') e.preventDefault();
 
-        // --- 渲染选项卡 ---
+                navItems.forEach(n => n.classList.remove('layui-this'));
+                this.classList.add('layui-this');
+
+                const pageId = this.dataset.page;
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+
+                if (pageId === 'page-qrcode') {
+                    setTimeout(generateQR, 80);
+                }
+            });
+        });
+
+        // =============================================================
+        //  2. 二维码生成器 (原有逻辑)
+        // =============================================================
+
+        // ============================================================
+        // 1. 数据定义
+        // ============================================================
+
+        // 选项卡数据数组，每个对象包含 id（唯一标识）、name（显示名称）、suffix（URL 后缀参数）
+        let tabs = [{
+            id: 1,
+            name: '默认',
+            suffix: '?adid=111&os=0&csite=1&ip=1.8.6.6&cid=17&clickid=55&callback=23&creativeid=1212&creativetype=3&projectid=1212&promotionid=1212'
+        }, {
+            id: 2,
+            name: 'suning链接',
+            suffix: '?resp-content-type=text%2Fhtml&adid=111&os=0&csite=1&ip=1.8.6.6&cid=17&clickid=55&callback=23&creativeid=1212&creativetype=3&projectid=1212&promotionid=1212'
+        }];
+
+        let activeTabId = 1; // 当前激活的选项卡 ID
+        let nextId = 3; // 新增选项卡时使用的下一个可用 ID
+
+        // ============================================================
+        // 2. DOM 元素引用
+        // ============================================================
+
+        const qrContainer = document.getElementById('qrcode'); // 二维码渲染容器
+        const urlInput = document.getElementById('urlInput'); // 基础 URL 输入框
+        const suffixInput = document.getElementById('suffixInput'); // 后缀参数输入框（当前选项卡）
+        const tabsNav = document.getElementById('tabsNav'); // 选项卡导航容器
+
+        // ============================================================
+        // 3. 核心渲染函数：根据 tabs 数据绘制选项卡按钮
+        // ============================================================
+
         function renderTabs() {
+            // 清空导航容器
             tabsNav.innerHTML = '';
+
+            // 遍历所有选项卡，生成对应的按钮
             tabs.forEach(tab => {
                 const btn = document.createElement('button');
-                btn.className = `tab-btn ${tab.id === activeTabId ? 'active' : ''}`;
-                btn.innerHTML = `
-                    <span class="tab-name">${tab.name}</span>
-                    <span class="tab-close" data-id="${tab.id}">&times;</span>
-                `;
-                // 点击切换
-                btn.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('tab-close')) switchTab(tab.id);
+                btn.className = 'custom-tab-btn' + (tab.id === activeTabId ? ' active' : '');
+                btn.dataset.id = tab.id;
+
+                // 选项卡名称（可点击区域）
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'tab-name';
+                nameSpan.textContent = tab.name;
+
+                // 关闭按钮（×）
+                const closeSpan = document.createElement('span');
+                closeSpan.className = 'tab-close';
+                closeSpan.textContent = '×';
+                closeSpan.dataset.id = tab.id;
+
+                btn.appendChild(nameSpan);
+                btn.appendChild(closeSpan);
+
+                // 点击按钮（非关闭区域）时切换选项卡
+                btn.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('tab-close')) return; // 避免关闭按钮触发切换
+                    switchTab(tab.id);
                 });
+
+                // 点击关闭按钮时删除该选项卡
+                closeSpan.addEventListener('click', function (e) {
+                    e.stopPropagation(); // 阻止事件冒泡，避免触发父按钮的切换
+                    deleteTab(tab.id);
+                });
+
                 tabsNav.appendChild(btn);
             });
 
-            // 添加新选项卡按钮
+            // 添加“新增”按钮
             const addBtn = document.createElement('button');
-            addBtn.className = 'add-tab-btn';
+            addBtn.className = 'custom-tab-add';
             addBtn.textContent = '+ 新增';
-            addBtn.onclick = addTab;
+            addBtn.addEventListener('click', addTab);
             tabsNav.appendChild(addBtn);
 
-            // 绑定删除事件
-            document.querySelectorAll('.tab-close').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    deleteTab(parseInt(btn.dataset.id));
-                };
-            });
-
+            // 渲染完成后，将当前选项卡的后缀显示在输入框中
             updateSuffixInput();
         }
 
-        // --- 选项卡操作逻辑 ---
+        // ============================================================
+        // 4. 选项卡切换
+        // ============================================================
+
         function switchTab(id) {
-            // 保存当前正在编辑的后缀
-            saveCurrentSuffix();
-            activeTabId = id;
-            renderTabs();
-            generateQR();
+            saveCurrentSuffix(); // 先保存当前选项卡的后缀（用户可能已修改）
+            activeTabId = id; // 更新激活 ID
+            renderTabs(); // 重新渲染按钮状态
+            generateQR(); // 根据新选项卡生成二维码
+            urlInput.value = ''; 
         }
 
+        // ============================================================
+        // 5. 新增选项卡
+        // ============================================================
+
         function addTab() {
-            saveCurrentSuffix(); // 保存旧数据
-            const newTab = { id: nextId++, name: `参数 ${nextId - 1}`, suffix: "" };
+            saveCurrentSuffix(); // 保存当前选项卡数据
+            const newTab = {
+                id: nextId++,
+                name: '参数 ' + (nextId - 1), // 自动命名
+                suffix: '' // 新选项卡后缀为空
+            };
             tabs.push(newTab);
             activeTabId = newTab.id;
             renderTabs();
-            suffixInput.focus(); // 自动聚焦到后缀输入框方便编辑
+            suffixInput.focus(); // 让用户立即输入后缀
+            generateQR();
         }
 
+        // ============================================================
+        // 6. 删除选项卡
+        // ============================================================
+
         function deleteTab(id) {
-            if (tabs.length <= 1) return alert("至少保留一个选项卡！");
-            tabs = tabs.filter(t => t.id !== id);
-            if (activeTabId === id) activeTabId = tabs[0].id;
+            // 至少保留一个选项卡，避免空状态
+            if (tabs.length <= 1) {
+                layer.msg('至少保留一个选项卡', {
+                    icon: 0,
+                    time: 1500
+                });
+                return;
+            }
+            tabs = tabs.filter(t => t.id !== id); // 移除指定 ID 的选项卡
+            if (activeTabId === id) activeTabId = tabs[0].id; // 如果删除的是当前激活的，则切换到第一个
             renderTabs();
             generateQR();
         }
 
+        // ============================================================
+        // 7. 辅助函数：保存 / 更新当前选项卡的后缀
+        // ============================================================
+
+        // 将 suffixInput 的值保存到当前激活的选项卡对象中
         function saveCurrentSuffix() {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            if (currentTab) currentTab.suffix = suffixInput.value;
+            const current = tabs.find(t => t.id === activeTabId);
+            if (current) current.suffix = suffixInput.value;
         }
 
+        // 从当前激活的选项卡读取后缀，填充到 suffixInput
         function updateSuffixInput() {
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            suffixInput.value = currentTab ? currentTab.suffix : "";
+            const current = tabs.find(t => t.id === activeTabId);
+            suffixInput.value = current ? current.suffix : '';
         }
 
-        // --- 二维码生成逻辑 ---
+        // ============================================================
+        // 8. 二维码生成（核心功能）
+        // ============================================================
+
         function generateQR() {
-            saveCurrentSuffix(); // 确保最新输入被保存
-            let inputVal = urlInput.value.trim();
-            if (!inputVal) inputVal = "https://www.example.com";
+            // 确保当前输入的后缀已保存到选项卡数据中
+            saveCurrentSuffix();
 
-            const currentTab = tabs.find(t => t.id === activeTabId);
-            const finalUrl = inputVal + (currentTab ? currentTab.suffix : "");
+            // 获取基础 URL，并拼接当前选项卡的后缀
+            let base = urlInput.value.trim();
+            if (!base) base = '';
+            const current = tabs.find(t => t.id === activeTabId);
+            const fullUrl = base + (current ? current.suffix : '');
 
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-                text: finalUrl, width: 200, height: 200,
-                colorDark: "#000000", colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            // 清空二维码容器
+            qrContainer.innerHTML = '';
+
+            // 使用 QRCode 库生成二维码（需预先引入 qrcode.min.js）
+            try {
+                new QRCode(qrContainer, {
+                    text: fullUrl,
+                    width: 220,
+                    height: 220,
+                    colorDark: '#1e293b',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H // 高纠错等级
+                });
+            } catch (e) {
+                // 若生成失败（如 URL 非法），显示错误提示
+                qrContainer.innerHTML = '<span style="color:#ef4444;font-size:14px;">⚠️ 二维码生成失败，请检查 URL</span>';
+            }
+        }
+
+        // ============================================================
+        // 9. 事件监听：输入框变化时自动生成二维码
+        // ============================================================
+
+        urlInput.addEventListener('input', generateQR);
+        suffixInput.addEventListener('input', generateQR);
+
+        // 按回车键也触发生成（方便操作）
+        suffixInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') generateQR();
+        });
+        urlInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') generateQR();
+        });
+
+        // ============================================================
+        // 10. 初始化
+        // ============================================================
+
+        function initQR() {
+            renderTabs();
+            urlInput.value = ''; // 清空基础 URL（可根据需求调整）
+            generateQR();
+        }
+
+        // 若页面加载完成后自动执行 initQR()，可取消下面注释：
+        // window.onload = initQR;
+
+        // =============================================================
+        //  3. 随机字符串生成器 (原有逻辑)
+        // =============================================================
+
+        const generateBtn = document.getElementById('generateBtn');
+        const randomResult = document.getElementById('randomResult');
+        const copyBtn = document.getElementById('copyBtn');
+
+        const CHARS = [
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+            'g', 'k', 'x', 'm', 'n', 'o', 'p', 'q', 'r',
+            'w', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+        ];
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateRandomStrings() {
+            let lines = [];
+            for (let j = 0; j < 10; j++) {
+                const len = getRandomInt(8, 10);
+                let str = '';
+                for (let i = 0; i < len; i++) {
+                    const idx = Math.floor(Math.random() * CHARS.length);
+                    str += CHARS[idx];
+                }
+                lines.push(str);
+            }
+            return lines;
+        }
+
+        function renderRandomResult(lines) {
+            if (!lines || lines.length === 0) {
+                randomResult.innerHTML = '<span class="empty-hint">点击「生成」按钮获取随机字符串</span>';
+                copyBtn.style.display = 'none';
+                return;
+            }
+            let html = lines.map(s => s).join('<br/><br/>');
+            randomResult.innerHTML = html;
+            copyBtn.style.display = 'inline-block';
+        }
+
+        generateBtn.addEventListener('click', function () {
+            const lines = generateRandomStrings();
+            renderRandomResult(lines);
+            randomResult.dataset.lines = JSON.stringify(lines);
+        });
+
+        copyBtn.addEventListener('click', function () {
+            const raw = randomResult.dataset.lines;
+            if (!raw) {
+                layer.msg('暂无内容可复制', {
+                    icon: 0,
+                    time: 1200
+                });
+                return;
+            }
+            try {
+                const lines = JSON.parse(raw);
+                const text = lines.join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    layer.msg('✅ 已复制 ' + lines.length + ' 行', {
+                        icon: 1,
+                        time: 1500
+                    });
+                }).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    layer.msg('✅ 已复制', {
+                        icon: 1,
+                        time: 1200
+                    });
+                });
+            } catch (e) {
+                layer.msg('复制失败，请手动选择', {
+                    icon: 0,
+                    time: 1200
+                });
+            }
+        });
+        renderRandomResult(null);
+
+        // =============================================================
+        //  4. 链接生成器 (优化：自动提取示例中的起始编号)
+        // =============================================================
+
+        const domainInput = document.getElementById('domainInput');
+        const exampleInput = document.getElementById('exampleInput');
+        const countInput = document.getElementById('countInput');
+        const randLenInput = document.getElementById('randLenInput');
+        const linkGenBtn = document.getElementById('linkGenBtn');
+        const linkResult = document.getElementById('linkResult');
+        const linkCopyAllBtn = document.getElementById('linkCopyAllBtn');
+        const linkClearBtn = document.getElementById('linkClearBtn');
+
+        // 随机字符串生成 (使用CHARS)
+        function generateRandomString(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                const idx = Math.floor(Math.random() * CHARS.length);
+                result += CHARS[idx];
+            }
+            return result;
+        }
+
+        // 从示例中提取前缀和起始编号
+        function parseExample(example) {
+            // 匹配末尾的4位数字
+            const match = example.match(/(\D*)(\d{4})$/);
+            if (!match) {
+                return null;
+            }
+            const prefix = match[1]; // 数字前的部分
+            const startNum = parseInt(match[2], 10);
+            if (isNaN(startNum)) return null;
+            return {
+                prefix,
+                startNum
+            };
+        }
+
+        function buildLinks() {
+            let domain = domainInput.value.trim();
+            if (!domain) {
+                layer.msg('请输入域名', {
+                    icon: 0,
+                    time: 1500
+                });
+                return;
+            }
+            if (domain.length > 0 && !domain.endsWith('/')) {
+                domain += '/';
+            }
+
+            const example = exampleInput.value.trim();
+            if (!example) {
+                layer.msg('请输入链接名示例', {
+                    icon: 0,
+                    time: 1500
+                });
+                return;
+            }
+
+            const parsed = parseExample(example);
+            if (!parsed) {
+                layer.msg('示例格式错误，请确保以4位数字结尾（如 HK-烧水壶KDFS5057）', {
+                    icon: 0,
+                    time: 2500
+                });
+                return;
+            }
+
+            const {
+                prefix,
+                startNum
+            } = parsed;
+
+            const count = parseInt(countInput.value);
+            if (isNaN(count) || count < 1 || count > 100) {
+                layer.msg('请输入1~100之间的生成条数', {
+                    icon: 0,
+                    time: 1500
+                });
+                return;
+            }
+
+            const randLen = parseInt(randLenInput.value);
+            if (isNaN(randLen) || randLen < 4 || randLen > 20) {
+                layer.msg('随机串长度建议4~20', {
+                    icon: 0,
+                    time: 1500
+                });
+                return;
+            }
+
+            // 生成结果：第1条编号为 startNum+1，第2条为 startNum+2 ...
+            const results = [];
+            for (let i = 1; i <= count; i++) {
+                const number = startNum + i;
+                const linkName = prefix + number;
+                const randomStr = generateRandomString(randLen);
+                const url = domain + randomStr + '/';
+                results.push({
+                    index: i,
+                    name: linkName,
+                    url: url
+                });
+            }
+
+            return results;
+        }
+
+        function renderLinkResults(results) {
+            linkResult.innerHTML = '';
+            if (!results || results.length === 0) {
+                linkResult.innerHTML = `<div class="text-muted" style="text-align:center;padding:20px 0;">
+                    <i class="layui-icon layui-icon-tips" style="font-size:20px;"></i> 暂无结果，请生成
+                </div>`;
+                linkCopyAllBtn.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            results.forEach(item => {
+                html += `
+                    <div class="result-item">
+                        <span class="result-index">#${item.index}</span>
+                        <span class="result-name">${item.name}</span>
+                        <span class="result-url">
+                            <a href="${item.url}" target="_blank">${item.url}</a>
+                        </span>
+                        <span class="result-copy" data-url="${item.url}" data-name="${item.name}" title="复制链接">
+                            <i class="layui-icon layui-icon-ok-circle"></i>
+                        </span>
+                    </div>
+                `;
+            });
+            linkResult.innerHTML = html;
+            linkCopyAllBtn.style.display = 'inline-block';
+
+            // 绑定单个复制事件
+            document.querySelectorAll('.result-copy').forEach(el => {
+                el.addEventListener('click', function (e) {
+                    const url = this.dataset.url;
+                    const name = this.dataset.name;
+                    const text = name + ' : ' + url;
+                    navigator.clipboard.writeText(text).then(() => {
+                        layer.msg('✅ 已复制：' + name, {
+                            icon: 1,
+                            time: 1200
+                        });
+                    }).catch(() => {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        layer.msg('✅ 已复制', {
+                            icon: 1,
+                            time: 1200
+                        });
+                    });
+                });
+            });
+
+            // 存储结果用于全部复制
+            linkResult.dataset.results = JSON.stringify(results);
+        }
+
+        // 生成按钮点击
+        linkGenBtn.addEventListener('click', function () {
+            const results = buildLinks();
+            if (results) {
+                renderLinkResults(results);
+                window._lastLinkResults = results;
+                layer.msg('✅ 已生成 ' + results.length + ' 条链接', {
+                    icon: 1,
+                    time: 1200
+                });
+            }
+        });
+
+        // 复制全部
+        linkCopyAllBtn.addEventListener('click', function () {
+            const raw = linkResult.dataset.results;
+            if (!raw) {
+                layer.msg('请先生成链接', {
+                    icon: 0,
+                    time: 1200
+                });
+                return;
+            }
+            try {
+                const results = JSON.parse(raw);
+                const lines = results.map(item => item.name + ' : ' + item.url);
+                const text = lines.join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    layer.msg('✅ 已复制全部 ' + results.length + ' 条', {
+                        icon: 1,
+                        time: 1500
+                    });
+                }).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    layer.msg('✅ 已复制全部', {
+                        icon: 1,
+                        time: 1200
+                    });
+                });
+            } catch (e) {
+                layer.msg('复制失败', {
+                    icon: 0,
+                    time: 1200
+                });
+            }
+        });
+
+        // 清空结果
+        linkClearBtn.addEventListener('click', function () {
+            renderLinkResults(null);
+            linkResult.dataset.results = '';
+            window._lastLinkResults = null;
+            layer.msg('已清空结果', {
+                icon: 1,
+                time: 1000
+            });
+        });
+
+        // 初始显示空状态
+        renderLinkResults(null);
+
+        // =============================================================
+        //  5. 初始化 & 工具
+        // =============================================================
+
+        if (typeof layui === 'undefined' || !layui.layer) {
+            window.layer = {
+                msg: function (content, options) {
+                    const icon = options && options.icon === 1 ? '✅' : 'ℹ️';
+                    alert(icon + ' ' + content);
+                }
+            };
+        } else {
+            layui.use(['layer'], function () {
+                window.layer = layui.layer;
             });
         }
 
-        // --- 事件监听 ---
-        urlInput.addEventListener("input", generateQR);
-        suffixInput.addEventListener("input", generateQR); // 修改后缀也实时刷新
-        window.onload = () => { renderTabs(); generateQR(); };
+        initQR();
+
+        window.addEventListener('load', function () {
+            setTimeout(generateQR, 200);
+        });
+
+        console.log('🛠️ 开发者工具箱 · LayUI 版已启动 (链接生成已优化)');
     </script>
+
 </body>
+
 </html>
